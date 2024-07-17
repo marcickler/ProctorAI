@@ -1,6 +1,5 @@
 import cv2
-from AppKit import NSScreen
-import subprocess
+import mss
 import os
 from openai import OpenAI
 import sounddevice as sd
@@ -28,20 +27,26 @@ def take_picture():
         print("Error: Could not read frame.")
         return None
 
-def get_number_of_screens():
-    return len(NSScreen.screens())
-
 def take_screenshots():
     # returns a list of the filepaths of the monitor screenshots
-    num_screens = get_number_of_screens()
-    if num_screens == 0:
-        print("Error: No screens detected.")
-        return None
-    image_filepaths = []
-    for screen in range(1, num_screens+1):
-        save_filepath = os.path.dirname(os.path.dirname(__file__))+f"/screenshots/screen_{screen}.png"
-        subprocess.run(["screencapture", "-x", f"-D{screen}", save_filepath])
-        image_filepaths.append(save_filepath)
+    with mss.mss() as sct:
+        image_filepaths = []
+        for i, monitor in enumerate(sct.monitors[1:], 1):  # skip the first monitor (entire screen)
+            # Capture the screenshot
+            screenshot = sct.grab(monitor)
+
+            # Define the save path
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            save_filepath = os.path.join(base_dir, f"screenshots/screen_{i}.png")
+
+            # Ensure the screenshots directory exists
+            os.makedirs(os.path.dirname(save_filepath), exist_ok=True)
+
+            # Save the screenshot
+            mss.tools.to_png(screenshot.rgb, screenshot.size, output=save_filepath)
+
+            image_filepaths.append(save_filepath)
+
     return image_filepaths
 
 def text_to_speech_deprecated(text):

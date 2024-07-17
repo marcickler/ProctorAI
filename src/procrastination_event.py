@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 
 
 class ProcrastinationEvent:
@@ -77,7 +76,7 @@ class FocusPopup:
 
     def check_input(self, event):
         user_input = self.entry.get()
-        if user_input == self.challenge_text:
+        if user_input.strip() == self.challenge_text.strip():
             self.master.destroy()  # Ends the mainloop
         else:
             self.result_label.config(text="Incorrect input. Please try again.", fg='red')
